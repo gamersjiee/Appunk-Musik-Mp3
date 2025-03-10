@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js"></script>
+    <title>Appunk Musik Mp3</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+
+        audio {
+            display: none; /* Menyembunyikan pemutar audio */
+        }
+
+        .player {
+            text-align: center;
+            background: rgb(20, 0, 0);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(226, 42, 42, 0.1);
+            height: auto; /* Mengatur tinggi otomatis */
+            width: 90%; /* Menggunakan 90% dari lebar layar */
+            max-width: 400px; /* Maksimal lebar 400px untuk perangkat besar */
+        }
+
+        img {
+            width: 100%; /* Gambar responsif */
+            height: auto; /* Tinggi otomatis untuk menjaga rasio aspek */
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #490707;
+            color: white;
+            cursor: pointer;
+            font-size: 16px; /* Ukuran font yang lebih besar untuk tombol */
+        }
+
+        button:hover {
+            background-color: #6e1010;
+        }
+
+        .marquee {
+            position: relative;
+            width: 100%; /* Full width */
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: hidden; /* Hide overflow */
+            margin-top: 10px; /* Space between cover and text */
+        }
+
+        .marquee-text {
+            display: inline-block; /* Allow animation */
+            animation: move 15s linear infinite; /* Animation */
+            font-size: 24px; /* Adjust font size */
+            color: rgb(180, 180, 180); /* Initial color with full opacity */
+            transition: color 0.1s; /* Smooth color transition */
+        }
+
+        @keyframes move {
+            0% {
+                transform: translateX(200%); /* Mulai dari luar kanan */
+            }
+            100% {
+                transform: translateX(-200%); /* Bergerak ke luar kiri */
+            }
+        }
+
+        .time {
+            font-size: 18px;
+            color: #d8d8d8; /* Warna teks untuk waktu */
+            display: flex;
+            justify-content: space-between; /* Menyebar waktu ke kiri dan kanan */
+            margin-top: 10px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background-color: #3b0000; /* Warna latar belakang garis waktu */
+            border-radius: 5px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #00ff00; /* Warna garis waktu */
+            width: 0%; /* Awalnya 0% */
+            border-radius: 3px;
+            
+        }
+
+        /* Media Queries untuk perangkat kecil */
+        @media (max-width: 600px) {
+            .player {
+                padding: 10px; /* Kurangi padding untuk perangkat kecil */
+            }
+
+            button {
+                padding: 8px 16px; /* Ukuran tombol lebih kecil */
+                font-size: 14px; /* Ukuran font lebih kecil */
+            }
+
+            .marquee-text {
+                font-size: 20px; /* Ukuran font lebih kecil untuk teks marquee */
+            }
+
+            .time {
+                font-size: 14px; /* Ukuran font lebih kecil untuk waktu */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="player">
+        <img id="cover" src="BG-1.jpg" alt="Cover Album">
+        <div class="marquee">
+            <div class="marquee-text" id="track-title">
+        </div>
+        <audio id="audio" controls>
+            <source id="audio-source" src="Ella - Berlayar Tak Bertepian.mp3" type="audio/mp3"></source>
+        </audio>
+        <div class="time">
+            <span id="current-time">00:00</span>
+            <span id="remaining-time">00:00</span> <!-- Waktu tersisa -->
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="controls">
+            <button id="prev">Prev</button>
+            <button id="play">Play</button>
+            <button id="next">Next</button>
+        </div>
+    </div>
+   
+    <script>
+        const tracks = [
+            {
+                title: "Ella - Berlayar Tak Bertepian",
+                src: "Ella - Berlayar Tak Bertepian.mp3",
+                cover: "BG-2.jpg"
+            },
+            {
+                title: "Tri Suaka - Aku Bukan Jodohnya",
+                src: "Tri Suaka - Aku Bukan Jodohnya.mp3",
+                cover: "BG-3.jpg"
+            },
+            {
+                title: "Tri Suaka Ft. Dodhy Kangen - Merayu Tuhan",
+                src: "Tri Suaka Ft. Dodhy Kangen - Merayu Tuhan.mp3",
+                cover: "BG-4.jpg"
+            }
+        ];
+
+        let currentTrackIndex = 0;
+        const audio = document.getElementById('audio');
+        const audioSource = document.getElementById('audio-source');
+        const trackTitle = document.getElementById('track-title');
+        const cover = document.getElementById('cover');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const remainingTimeDisplay = document.getElementById('remaining-time'); // Elemen untuk waktu tersisa
+        const progressBar = document.getElementById('progress-bar');
+
+        function loadTrack(index) {
+            const track = tracks[index];
+            audioSource.src = track.src;
+            trackTitle.textContent = track.title;
+            cover.src = track.cover;
+            audio.load();
+            audio.addEventListener('loadedmetadata', () => {
+                const duration = audio.duration;
+                const minutes = Math.floor(duration / 60);
+                const seconds = Math.floor(duration % 60);
+                // Update total time hanya jika durasi valid
+                if (!isNaN(duration)) {
+                    totalTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Update total time
+                } else {
+                    totalTimeDisplay.textContent = "00:00"; // Atur ke default jika tidak valid
+                }
+            });
+            playTrack();
+        }
+    
+        function playTrack() {
+            audio.play();
+            document.getElementById('play').textContent = 'Pause';
+        }
+    
+        function pauseTrack() {
+            audio.pause();
+            document.getElementById('play').textContent = 'Play';
+        }
+    
+        document.getElementById('play').addEventListener('click', () => {
+            if (audio.paused) {
+                playTrack();
+            } else {
+                pauseTrack();
+            }
+        });
+    
+        document.getElementById('next').addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            loadTrack(currentTrackIndex);
+        });
+    
+        document.getElementById('prev').addEventListener('click', () => {
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            loadTrack(currentTrackIndex);
+        });
+    
+        audio.addEventListener('ended', () => {
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            loadTrack(currentTrackIndex);
+        });
+    
+        loadTrack(currentTrackIndex);
+
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            const duration = audio.duration;
+
+            // Update current time hanya jika durasi valid
+            if (!isNaN(duration)) {
+                const minutes = Math.floor(currentTime / 60);
+                const seconds = Math.floor(currentTime % 60);
+                currentTimeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                // Hitung waktu tersisa
+                const remainingTime = duration - currentTime;
+                const remainingMinutes = Math.floor(remainingTime / 60);
+                const remainingSeconds = Math.floor(remainingTime % 60);
+                remainingTimeDisplay.textContent = `${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+            } else {
+                // Sembunyikan waktu jika durasi tidak valid
+                currentTimeDisplay.textContent = "00:00";
+                remainingTimeDisplay.textContent = "00:00";
+            }
+
+            const progressPercent = (currentTime / duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+        });
+    </script>
+</body>
+</html>
